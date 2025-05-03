@@ -13,17 +13,18 @@ struct Params final
     uint32_t Channels {1};
     bool WriteToFile {false};
     bool Verbose {false};
+
+    friend std::ostream& operator << (std::ostream& os, const Params& obj)
+    {
+        return os << "Parameters\n"
+                  << "Input device:\t"  << obj.InputDevice << "\n"
+                  << "Output device:\t" << obj.OutputDevice << "\n"
+                  << "Sample format:\t" << obj.SampleFormat << "\n"
+                  << "Sample rate:\t"   << obj.SampleRate << "\n"
+                  << "Channels:\t"      << obj.Channels << "\n"
+                  << "Write to file:\t" << (obj.WriteToFile ? obj.OutputDevice : "No");
+    }
 };
 
-std::ostream& operator << (std::ostream& os, const Params& obj)
-{
-    return os << "Parameters\n"
-              << "Input device:\t"  << obj.InputDevice << "\n"
-              << "Output device:\t" << obj.OutputDevice << "\n"
-              << "Sample format:\t" << obj.SampleFormat << "\n"
-              << "Sample rate:\t"   << obj.SampleRate << "\n"
-              << "Channels:\t"      << obj.Channels << "\n"
-              << "Write to file:\t" << (obj.WriteToFile ? obj.OutputDevice : "No");
-}
 
 #endif // PARAMS_HPP

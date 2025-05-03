@@ -1,14 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <alsa/asoundlib.h>
-#include <signal.h>
-#include <stdbool.h>
-
 #include <iostream>
 
 #include <boost/program_options.hpp>
 
 #include "Params.hpp"
+#include "AlsaHandler.hpp"
 
 // #define SAMPLE_RATE     8000
 // #define CHANNELS        1
@@ -65,13 +60,15 @@ int main(int argc, char** argv)
 
         if (params.Verbose)
             std::cout << params << "\n";
+
+        AlsaHandler alsaHandler {std::move(params)};
+        alsaHandler.run();
     }
     catch (const std::exception& ex)
     {
         std::cerr << "Error occured: " << ex.what() << "\n";
         return 1;
     }
-
 
     return 0;
 }
