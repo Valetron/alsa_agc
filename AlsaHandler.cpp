@@ -2,6 +2,7 @@
 #include <unordered_map>
 
 #include "AlsaHandler.hpp"
+#include "Agc.hpp"
 
 namespace
 {
@@ -34,6 +35,8 @@ AlsaHandler::AlsaHandler(Params&& params) : m_params{std::move(params)}
         close();
         throw std::runtime_error(res.second);
     }
+
+    m_module = std::make_unique<Agc>(0.3f, 0.01f, 0.95f, 10.0f, 0.1f);
 }
 
 AlsaHandler::~AlsaHandler()
@@ -48,7 +51,7 @@ void AlsaHandler::run()
 
     const auto format = snd_pcm_format_value(m_params.SampleFormat.data());
     const auto bufferSize = (m_params.LatencyMax * 2 * snd_pcm_format_physical_width(format) / 8) * m_params.Channels;
-    std::vector<uint16_t> buffer(bufferSize, 0);
+    std::vector<uint8_t> buffer(bufferSize, 0);
     while (m_isRunning)
     {
         snd_pcm_sframes_t frames = snd_pcm_readi(m_capture, buffer.data(), g_readSize);
@@ -57,6 +60,9 @@ void AlsaHandler::run()
             snd_pcm_prepare(m_capture);
             continue;
         }
+
+        // buffer.resize(frames);
+        m_module->processFrame(buffer);
 
         frames = snd_pcm_writei(m_playback, buffer.data(), frames);
         if (frames < 0)

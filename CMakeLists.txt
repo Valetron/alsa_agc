@@ -11,7 +11,7 @@ add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
 
 set_target_properties(
     ${PROJECT_NAME} PROPERTIES
-    CXX_STANDARD 11)
+    CXX_STANDARD 14)
 
 # target_compile_options(${PROJECT_NAME} PUBLIC -fno-rtti)
 
