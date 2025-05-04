@@ -20,12 +20,12 @@ public:
 private:
     std::pair<bool, std::string> setHwParams(snd_pcm_t* handle);
     void close();
-    // void setSwParams(snd_pcm_t* handle);
 
 private:
     Params m_params;
     snd_pcm_t* m_capture {nullptr};
     snd_pcm_t* m_playback {nullptr};
+    bool m_isRunning {false};
 };
 
 #endif // ALSA_HANDLER_HPP

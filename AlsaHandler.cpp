@@ -1,12 +1,11 @@
+#include <vector>
 #include <unordered_map>
 
 #include "AlsaHandler.hpp"
 
 namespace
 {
-const std::unordered_map<std::string, snd_pcm_format_t> g_sampleFormatNameType = {
-    {"S16_LE", SND_PCM_FORMAT_S16_LE}
-};
+const auto g_readSize {256};
 }
 
 AlsaHandler::AlsaHandler(Params&& params) : m_params{std::move(params)}
@@ -39,13 +38,30 @@ AlsaHandler::AlsaHandler(Params&& params) : m_params{std::move(params)}
 
 AlsaHandler::~AlsaHandler()
 {
-    // TODO: close pcm handlers
+    m_isRunning = false;
     close();
 }
 
 void AlsaHandler::run()
 {
+    m_isRunning = true;
 
+    const auto format = snd_pcm_format_value(m_params.SampleFormat.data());
+    const auto bufferSize = (m_params.LatencyMax * 2 * snd_pcm_format_physical_width(format) / 8) * m_params.Channels;
+    std::vector<uint16_t> buffer(bufferSize, 0);
+    while (m_isRunning)
+    {
+        snd_pcm_sframes_t frames = snd_pcm_readi(m_capture, buffer.data(), g_readSize);
+        if (frames < 0)
+        {
+            snd_pcm_prepare(m_capture);
+            continue;
+        }
+
+        frames = snd_pcm_writei(m_playback, buffer.data(), frames);
+        if (frames < 0)
+            snd_pcm_prepare(m_playback);
+    }
 }
 
 std::pair<bool, std::string> AlsaHandler::setHwParams(snd_pcm_t* handle)
@@ -57,7 +73,7 @@ std::pair<bool, std::string> AlsaHandler::setHwParams(snd_pcm_t* handle)
     if (snd_pcm_hw_params_set_access(handle, params, SND_PCM_ACCESS_RW_INTERLEAVED) < 0)
         return std::make_pair(false, "Failed to set access mod");
 
-    if (snd_pcm_hw_params_set_format(handle, params, g_sampleFormatNameType.at(m_params.SampleFormat)) < 0)
+    if (snd_pcm_hw_params_set_format(handle, params, snd_pcm_format_value(m_params.SampleFormat.data())) < 0)
         return std::make_pair(false, "Failed to set sample format");
 
     if (snd_pcm_hw_params_set_channels(handle, params, m_params.Channels) < 0)
@@ -65,6 +81,8 @@ std::pair<bool, std::string> AlsaHandler::setHwParams(snd_pcm_t* handle)
 
     if (snd_pcm_hw_params_set_rate(handle, params, m_params.SampleRate, 0) < 0)
         return std::make_pair(false, "Failed to set sample rate");
+
+    // TODO: другие параметры?
 
     if (snd_pcm_hw_params(handle, params) < 0)
         return std::make_pair(false, "Failed to set access mod");
