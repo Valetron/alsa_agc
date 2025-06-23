@@ -6,7 +6,7 @@
 
 namespace
 {
-const auto g_readSize {256};
+const auto g_readSize {320};
 }
 
 AlsaHandler::AlsaHandler(Params&& params) : m_params{std::move(params)}
@@ -62,7 +62,8 @@ void AlsaHandler::run()
         }
 
         // buffer.resize(frames);
-        m_module->processFrame(buffer);
+        // m_module->processFrame(buffer, frames);
+        // std::clog << "size " << frames << "\n";
 
         frames = snd_pcm_writei(m_playback, buffer.data(), frames);
         if (frames < 0)
