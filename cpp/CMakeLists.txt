@@ -1,18 +1,31 @@
-cmake_minimum_required(VERSION 3.10)
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/build/conan_toolchain.cmake")
+set(QT_CREATOR_SKIP_CONAN_SETUP ON)
+
+cmake_minimum_required(VERSION 3.8)
 project(alsa_agc LANGUAGES CXX)
 
-find_package(Boost REQUIRED COMPONENTS program_options)
-include(FindALSA)
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+    message(DEBUG "ccache found")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE_PROGRAM})
+endif()
 
-file(GLOB SOURCES "*.cpp")
-file(GLOB HEADERS "*.hpp")
+find_package(ALSA REQUIRED)
+find_package(spdlog REQUIRED)
 
-add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
+file(GLOB SOURCES "sources/*.cpp")
+file(GLOB HEADERS "headers/*.hpp")
 
-set_target_properties(
-    ${PROJECT_NAME} PROPERTIES
-    CXX_STANDARD 14)
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
-# target_compile_options(${PROJECT_NAME} PUBLIC -fno-rtti)
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC Boost::program_options ${ALSA_LIBRARIES})
+# add_compile_definitions(SPDLOG_COMPILED_LIB)
+
+# target_compile_definitions(${PROJECT_NAME} PUBLIC -DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
+target_compile_options(${PROJECT_NAME} PRIVATE -Os -ffunction-sections -fdata-sections -fmerge-all-constants -fno-threadsafe-statics)
+target_link_options(${PROJECT_NAME} PRIVATE -Wl,--exclude-libs,ALL -flto -Wl,--strip-all)
+target_include_directories(${PROJECT_NAME} PUBLIC "headers")
+target_link_libraries(${PROJECT_NAME} PUBLIC ALSA::ALSA spdlog::spdlog -static-libgcc -static-libstdc++)

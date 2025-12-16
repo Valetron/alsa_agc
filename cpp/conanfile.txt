@@ -1,0 +1,12 @@
+[requires]
+spdlog/1.15.0
+libalsa/1.2.13
+
+[options]
+spdlog/*:shared=False
+libalsa/*:shared=False
+libalsa/*:disable_python=True
+
+[generators]
+CMakeDeps
+CMakeToolchain
