@@ -12,6 +12,7 @@ endif()
 
 find_package(ALSA REQUIRED)
 find_package(spdlog REQUIRED)
+find_package(Boost REQUIRED)
 
 file(GLOB SOURCES "sources/*.cpp")
 file(GLOB HEADERS "headers/*.hpp")
@@ -24,8 +25,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 # add_compile_definitions(SPDLOG_COMPILED_LIB)
 
-# target_compile_definitions(${PROJECT_NAME} PUBLIC -DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
-target_compile_options(${PROJECT_NAME} PRIVATE -Os -ffunction-sections -fdata-sections -fmerge-all-constants -fno-threadsafe-statics)
+target_compile_definitions(${PROJECT_NAME} PUBLIC -DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
+target_compile_options(${PROJECT_NAME} PRIVATE -Os -ffunction-sections -fdata-sections -fmerge-all-constants -fno-threadsafe-statics) # TODO: -Wno-psabi
 target_link_options(${PROJECT_NAME} PRIVATE -Wl,--exclude-libs,ALL -flto -Wl,--strip-all)
 target_include_directories(${PROJECT_NAME} PUBLIC "headers")
-target_link_libraries(${PROJECT_NAME} PUBLIC ALSA::ALSA spdlog::spdlog -static-libgcc -static-libstdc++)
+target_link_libraries(${PROJECT_NAME} PUBLIC ALSA::ALSA spdlog::spdlog Boost::program_options -static-libgcc -static-libstdc++ atomic)

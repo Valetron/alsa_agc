@@ -1,0 +1,15 @@
+[settings]
+os=Linux
+arch=armv5el
+compiler=clang
+build_type=Release
+compiler.cppstd=20
+compiler.libcxx=libstdc++11
+compiler.version=15
+
+[buildenv]
+CC=clang-15
+CXX=clang++-15
+CXXFLAGS=-Os -ffunction-sections -fdata-sections -fmerge-all-constants -fno-threadsafe-statics -target arm-linux-gnueabi -mcpu=arm926ej-s -mtune=arm926ej-s
+CFLAGS=-Os -ffunction-sections -fdata-sections -fmerge-all-constants -fno-threadsafe-statics -target arm-linux-gnueabi -mcpu=arm926ej-s -mtune=arm926ej-s
+LDFLAGS=-Wl,--exclude-libs,ALL -flto -Wl,--strip-all

@@ -2,7 +2,9 @@
 
 #include <cmath>
 #include <numbers>
-#include <algorithm>
+
+#include <spdlog/spdlog.h>
+#include <fmt/ranges.h>
 
 namespace
 {
@@ -17,37 +19,35 @@ GaussianFilter::GaussianFilter(uint32_t filterSize)
 {
     const auto sigma = (((static_cast<double>(filterSize) / 2.0) - 1.0) / 3.0) + s_eps;
     m_weights.resize(filterSize);
-    m_weights.shrink_to_fit();
 
     double totalWeight {0.0};
     const auto offset {static_cast<uint32_t>(filterSize / 2)};
-    const auto coef1 {(1.0 / (sigma * s_sqrt2Pi))};
-    const auto coef2 {2.0 * std::pow(sigma, 2.0)};
+    const auto coef1 {1.0 / (sigma * s_sqrt2Pi)};
+    const auto coef2 {2.0 * std::pow(sigma, 2)};
 
-    uint32_t x {0};
+    int32_t x {0};
     for (size_t i {0}; i < filterSize; ++i)
     {
         x = i - offset;
-        m_weights[i] = coef1 + std::exp(((std::pow(x, 2)) * -1) / coef2);
+        m_weights[i] = coef1 * std::exp(-(std::pow(x, 2) / coef2));
         totalWeight += m_weights[i];
     }
 
     const auto adjust {1.0 / totalWeight};
     for (size_t i {0}; i < filterSize; ++i)
         m_weights[i] *= adjust;
+
+    SPDLOG_DEBUG("{}: sigma={}, offset={}, coef1={}, coef2={}, m_weights=[{}]",
+                 __FUNCTION__, sigma, offset, coef1, coef2, fmt::join(m_weights, " "));
 }
 
-double GaussianFilter::filter(const std::span<const double> frame) const
+double GaussianFilter::filter(const std::deque<double>& frame) const
 {
     double res {0.0};
     size_t i {0};
 
-    std::for_each(frame.begin(), frame.end(), [this, &res, &i](double value){
-        res += (value * m_weights[i++]);
-    });
-
-    // for (auto iter = frame.begin(); iter != frame.end(); ++iter)
-    //     res += ((*iter) * m_weights[i++]);
+    for (auto iter = frame.cbegin(); iter != frame.cend(); ++iter)
+        res += ((*iter) * m_weights[i++]);
 
     return res;
 }

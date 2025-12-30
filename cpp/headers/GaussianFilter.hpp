@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <vector>
-#include <span>
+#include <deque>
 
 namespace valetron::agc::lib
 {
@@ -12,7 +12,7 @@ class GaussianFilter
 {
 public:
     explicit GaussianFilter(uint32_t filterSize);
-    double filter(const std::span<const double> frame) const;
+    double filter(const std::deque<double>& frame) const;
 
 private:
     std::vector<double> m_weights {};
