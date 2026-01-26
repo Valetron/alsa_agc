@@ -3,9 +3,7 @@
 
 #include <cstdint>
 
-namespace valetron::agc::lib
-{
-namespace constants
+namespace valetron::agc::lib::constants
 {
 
 const uint32_t DefaultFrameLenMsec {20};
@@ -16,7 +14,6 @@ const double DefaultPeakValue {0.95};
 const double DefaultMaxGain {100.0};
 const double DefaultRms {0.0};
 
-} // namespace constants
-} // namespace valetron::agc::lib
+} // namespace valetron::agc::lib::constants
 
 #endif // CONSTANTS_H

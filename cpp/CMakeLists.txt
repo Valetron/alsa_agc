@@ -2,7 +2,7 @@ set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/build/conan_toolchain.cmak
 set(QT_CREATOR_SKIP_CONAN_SETUP ON)
 
 cmake_minimum_required(VERSION 3.8)
-project(alsa_agc LANGUAGES CXX)
+project(AGC LANGUAGES CXX)
 
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
@@ -14,19 +14,38 @@ find_package(ALSA REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Boost REQUIRED)
 
-file(GLOB SOURCES "sources/*.cpp")
-file(GLOB HEADERS "headers/*.hpp")
+set(PROJECT_ROOT_DIR ${CMAKE_SOURCE_DIR})
+set(RELEASE_COMPILE_OPTS -Os -ffunction-sections -fdata-sections -fmerge-all-constants -fno-threadsafe-statics) # TODO: -Wno-psabi
+set(RELEASE_LINK_OPTS -Wl,--exclude-libs,ALL -flto -Wl,--strip-all)
+set(DEBUG_COMPILE_OPTS -O0 -g -fno-omit-frame-pointer)
+set(COMPILE_DEFINES "-DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG")
+set(COMMON_LINK_LIBS spdlog::spdlog -static-libgcc -static-libstdc++ atomic)
+set(PROJECT_CXX_STANDARD 20)
+set(PROJECT_CXX_STANDARD_REQUIRED ON)
 
-add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+add_subdirectory(libagc)
 
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    CXX_STANDARD 20
-    CXX_STANDARD_REQUIRED ON)
+set(AGC_HEADERS "${PROJECT_ROOT_DIR}/libagc/headers")
 
-# add_compile_definitions(SPDLOG_COMPILED_LIB)
+add_subdirectory(utils)
+add_subdirectory(alsa_module)
 
-target_compile_definitions(${PROJECT_NAME} PUBLIC -DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
-target_compile_options(${PROJECT_NAME} PRIVATE -Os -ffunction-sections -fdata-sections -fmerge-all-constants -fno-threadsafe-statics) # TODO: -Wno-psabi
-target_link_options(${PROJECT_NAME} PRIVATE -Wl,--exclude-libs,ALL -flto -Wl,--strip-all)
-target_include_directories(${PROJECT_NAME} PUBLIC "headers")
-target_link_libraries(${PROJECT_NAME} PUBLIC ALSA::ALSA spdlog::spdlog Boost::program_options -static-libgcc -static-libstdc++ atomic)
+# file(GLOB SOURCES "sources/*.cpp")
+# file(GLOB HEADERS "headers/*.hpp")
+
+# add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+
+# set_target_properties(${PROJECT_NAME} PROPERTIES
+#     CXX_STANDARD 20
+#     CXX_STANDARD_REQUIRED ON)
+
+# if(CMAKE_BUILD_TYPE STREQUAL "Release")
+#     target_compile_options(${PROJECT_NAME} PRIVATE -Os -ffunction-sections -fdata-sections -fmerge-all-constants -fno-threadsafe-statics) # TODO: -Wno-psabi
+#     # target_link_options(${PROJECT_NAME} PRIVATE )
+# else()
+#     target_compile_options(${PROJECT_NAME} PRIVATE -O0 -g -fno-omit-frame-pointer)
+# endif()
+
+# # target_compile_definitions(${PROJECT_NAME} PUBLIC -DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
+# target_include_directories(${PROJECT_NAME} PUBLIC "headers")
+# target_link_libraries(${PROJECT_NAME} PUBLIC ALSA::ALSA spdlog::spdlog Boost::program_options -static-libgcc -static-libstdc++ atomic)

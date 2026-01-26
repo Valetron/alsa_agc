@@ -24,5 +24,5 @@ fi
 cd build/
 source conanbuild.sh
 cmake -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
-cmake --build . -j $(nproc)
+cmake --build . -j$(nproc)
 cd -
