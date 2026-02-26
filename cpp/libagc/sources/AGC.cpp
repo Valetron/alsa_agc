@@ -5,9 +5,6 @@
 #include <numbers>
 #include <algorithm>
 
-#include <fmt/ranges.h>
-#include <spdlog/spdlog.h>
-
 namespace
 {
 constexpr auto g_dblEpsilon = std::numeric_limits<double>::epsilon();

@@ -1,10 +1,17 @@
+#define PIC 1 // NOTE: https://github.com/alsa-project/alsa-lib/issues/289
+
+#include <memory>
 #include <cstring>
 #include <string_view>
 
+extern "C"
+{
 #include <alsa/asoundlib.h>
 #include <alsa/pcm_external.h>
 #include <alsa/conf.h>
+}
 
+#include "AGC.hpp"
 #include "params.hpp"
 
 using namespace valetron::agc;
@@ -54,19 +61,43 @@ bool getDoubleParam(snd_config_t* cfg, const  char* id, const std::string_view p
   return true;
 }
 
-const snd_pcm_extplug_callback_t speex_callback = {
-// .transfer = spx_transfer,
-// .init = spx_init,
-// .close = spx_close,
-};
+using TAgc = lib::AutomaticGainControl;
+std::unique_ptr<TAgc> g_agc {nullptr};
 }
 
-SND_PCM_PLUGIN_DEFINE_FUNC(agc)
+static snd_pcm_sframes_t callback_transfer(snd_pcm_extplug_t* ext, const snd_pcm_channel_area_t* dst_areas,
+                                            snd_pcm_uframes_t dst_offset, const snd_pcm_channel_area_t* src_areas,
+                                            snd_pcm_uframes_t src_offset, snd_pcm_uframes_t size)
+{
+  // TODO: same as utils/main.cpp
+  return size;
+}
+
+static int callback_init(snd_pcm_extplug_t* ext)
+{
+  const auto params = reinterpret_cast<const PluginParams*>(ext->private_data);
+  g_agc = std::make_unique<TAgc>(params->FrameLenMs, params->Channels, params->Rate, params->FilterSize);
+  return 0;
+}
+
+static int callback_close(snd_pcm_extplug_t* ext)
+{
+  return 0;
+}
+
+static const snd_pcm_extplug_callback_t plugin_agc_callback = {
+  .transfer = callback_transfer,
+  .close = callback_close,
+  .init = callback_init,
+};
+
+extern "C"
+{
+SND_PCM_PLUGIN_DEFINE_FUNC(alsa_agc)
 {
   PluginParams* params {nullptr};
 
   snd_pcm_extplug_t ext {};
-  // snd_pcm_speex_t* spx {nullptr};
   snd_config_iterator_t i {nullptr};
   snd_config_iterator_t next {nullptr};
   snd_config_t* slave {nullptr};
@@ -121,15 +152,15 @@ SND_PCM_PLUGIN_DEFINE_FUNC(agc)
   }
 
   ext.version = SND_PCM_EXTPLUG_VERSION;
-  ext.name = "AGC plugin";
-  ext.callback = nullptr;
+  ext.name = "AGC filter plugin by Valetron";
+  ext.callback = &plugin_agc_callback;
   ext.private_data = params;
 
   err = snd_pcm_extplug_create(&ext, name, root, slave, stream, mode);
 
   if (err < 0)
   {
-    // free(spx);
+    SNDERR("Error");
     return err;
   }
 
@@ -142,4 +173,6 @@ SND_PCM_PLUGIN_DEFINE_FUNC(agc)
   return 0;
 }
 
-SND_PCM_PLUGIN_SYMBOL(agc);
+SND_PCM_PLUGIN_SYMBOL(alsa_agc);
+
+} // extern "C"

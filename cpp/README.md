@@ -29,3 +29,20 @@ cat input.raw | ./alsa_agc | aplay -D <output device> -c 1 -f S16_LE -t raw
 ```
 arecord -D <input device> -f S16_LE -t raw | ./alsa_agc | aplay -D <output device> -f S16_LE -t raw
 ```
+
+# Alsa
+## Конфиг
+Настройка *asound.conf*:  
+```
+...
+pcm.pcmagc {
+  type alsa_agc
+  slave.pcm "pcm_output"
+}
+
+pcm.agc_out {
+  type plug
+  slave.pcm pcmagc
+}
+...
+```
