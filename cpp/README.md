@@ -1,3 +1,15 @@
+# Установка зависимостей
+```bash
+pip3 install conan
+sudo apt-get install g++-arm-linux-gnueabi gcc-arm-linux-gnueabi g++-arm-linux-gnueabihf gcc-arm-linux-gnueabihf clang
+```
+
+# Сборка
+```bash
+make clean ; make <цель>
+```
+<цель> - (host|omap_l138|allwinner)_(rel|dbg)
+
 # Использование
 
 __Входной формат данных__: 1 канал, S16_LE, 8000 Hz

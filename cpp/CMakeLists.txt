@@ -29,23 +29,3 @@ set(AGC_HEADERS "${PROJECT_ROOT_DIR}/libagc/headers")
 
 add_subdirectory(utils)
 add_subdirectory(alsa_module)
-
-# file(GLOB SOURCES "sources/*.cpp")
-# file(GLOB HEADERS "headers/*.hpp")
-
-# add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
-
-# set_target_properties(${PROJECT_NAME} PROPERTIES
-#     CXX_STANDARD 20
-#     CXX_STANDARD_REQUIRED ON)
-
-# if(CMAKE_BUILD_TYPE STREQUAL "Release")
-#     target_compile_options(${PROJECT_NAME} PRIVATE -Os -ffunction-sections -fdata-sections -fmerge-all-constants -fno-threadsafe-statics) # TODO: -Wno-psabi
-#     # target_link_options(${PROJECT_NAME} PRIVATE )
-# else()
-#     target_compile_options(${PROJECT_NAME} PRIVATE -O0 -g -fno-omit-frame-pointer)
-# endif()
-
-# # target_compile_definitions(${PROJECT_NAME} PUBLIC -DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
-# target_include_directories(${PROJECT_NAME} PUBLIC "headers")
-# target_link_libraries(${PROJECT_NAME} PUBLIC ALSA::ALSA spdlog::spdlog Boost::program_options -static-libgcc -static-libstdc++ atomic)
