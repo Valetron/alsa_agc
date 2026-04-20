@@ -1,5 +1,7 @@
 # alsa_agc
 
+![](pic.png)
+
 Структура проекта:  
 * _cpp_ - реализация на C++
 * _protopyth_ - прототип на Python/JupyterNotebook
